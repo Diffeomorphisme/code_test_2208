@@ -18,7 +18,13 @@ def fetch_customer_data(customer):
 				data_fields = line
 				counter += 1
 			if line[0] == customer:
-				customer_data = line
+				for element in line:
+					if element.isdigit():
+						customer_data.append(int(element))
+					elif element.replace('.','',1).isdigit() and element.count('.') < 2:
+						customer_data.append(float(element))
+					else:
+						customer_data.append(element)
 
 	if len(customer_data) == len(data_fields):
 		for index, field in enumerate(data_fields):
@@ -26,10 +32,11 @@ def fetch_customer_data(customer):
 	else:
 		for index, field in enumerate(data_fields):
 			results[field] = "None"
+	print(results)
 	return results
 
 
-def calculate_days_difference(start_date, end_date, businessdays=False) -> int:
+def calculate_days_difference(start_date: str, end_date: str, businessdays=False) -> int:
 	if not businessdays:
 		start_date_reworked = datetime.datetime.strptime(start_date, "%Y-%m-%d")
 		end_date_reworked = datetime.datetime.strptime(end_date, "%Y-%m-%d")
