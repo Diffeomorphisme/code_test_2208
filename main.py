@@ -29,6 +29,20 @@ class Customer():
 		self.service_c = Service(self.price_C, self.start_C, self.end_date,
 								 self.discount_C_percent, self.discount_C_start, self.discount_C_end, False)
 
+	def _determine_active_services(self):
+		active_services = [self.service_a, self.service_b, self.service_c]
+		to_remove = []
+
+		for service in active_services:
+			if service.start_date is None:
+				to_remove.append(service)
+
+		for inactive_service in to_remove:
+			if inactive_service in active_services:
+				active_services.remove(inactive_service)
+
+		return active_services
+
 	def _calculate_free_days_end(self, services):
 
 		free_days_old = []
@@ -92,24 +106,11 @@ class Customer():
 				if service.discounted_days < 0:
 					service.discounted_days = 0
 
-	def _determine_active_services(self):
-		active_services = [self.service_a, self.service_b, self.service_c]
-		to_remove = []
-
-		for service in active_services:
-			if service.start_date is None:
-				to_remove.append(service)
-
-		for inactive_service in to_remove:
-			if inactive_service in active_services:
-				active_services.remove(inactive_service)
-
-		return active_services
-
-	def _calculate_price(self, active_services):
+	@staticmethod
+	def _calculate_price(active_services):
 		price = 0
 		for service in active_services:
-			price += (service.active_days - service.discounted_days * service.discount / 100) * service.price
+			price += (service.paid_days - service.discounted_days * service.discount / 100) * service.price
 		return price
 
 	def calculate_price(self) -> float:
@@ -129,18 +130,16 @@ class Customer():
 		if self.free_days != 0:
 			self._calculate_free_days_end(active_services)
 
+		# Calculate the number of paid days (without the free days) for each service
 		for service in active_services:
 			service.active_date = service.end_free_days_date
-			service.active_days = functions.calculate_days_difference(service.active_date, service.end_date,
-																	  businessdays=service.workday)
-			print(service.active_days)
+			service.paid_days = functions.calculate_days_difference(service.active_date, service.end_date,
+																	businessdays=service.workday)
 
 		# Evaluate the number of days with a discount applied for each service
 		self._calculate_discount_days(active_services)
-		for service in active_services:
-			print(f"Discounted days: {service.discounted_days} - "
-				  f"Total active days {service.active_days}")
 
+		# Calculate the total price
 		self._price = round(self._calculate_price(active_services), 2)
 		return self._price
 
@@ -156,7 +155,7 @@ class Service():
 		self.discount_end = discount_end
 		self.workday = workday
 		self.total_days = 0
-		self.active_days = 0
+		self.paid_days = 0
 		self.total_free_days = 0
 		self.discounted_days = 0
 		self.end_free_days_date = start_date
