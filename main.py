@@ -4,7 +4,7 @@ import functions
 
 
 class Customer():
-	# DATA Fields from DB:
+	# Attributes from DB:
 	# 'customerid',
 	# 'price_A', 'price_B', 'price_C',
 	# 'start_A', 'start_B', 'start_C',
@@ -12,6 +12,8 @@ class Customer():
 	# 'discount_A_start', 'discount_B_start', 'discount_C_start',
 	# 'discount_A_end', 'discount_B_end', 'discount_C_end',
 	# 'free_days'
+	# Other attributes:
+	# start_date, end_date
 
 	def __init__(self, customer_data_from_db: dict, start_date: str, end_date: str):
 		for key, value in customer_data_from_db.items():
@@ -25,9 +27,7 @@ class Customer():
 								 self.discount_B_percent, self.discount_B_start, self.discount_B_end, True)
 		self.service_c = Service(self.price_C, self.start_C, self.end_date,
 								 self.discount_C_percent, self.discount_C_start, self.discount_C_end, False)
-		self._days_A = 0
-		self._days_B = 0
-		self._days_C = 0
+
 
 	def _calculate_free_days(self, services):
 		test_date = datetime.datetime.strptime(self.start_date, "%Y-%m-%d")
@@ -55,6 +55,7 @@ class Customer():
 
 	@property
 	def price(self):
+		# Find out which services the customer is paying for
 		active_services = [self.service_a, self.service_b, self.service_c]
 		to_remove = []
 
@@ -69,6 +70,7 @@ class Customer():
 			if inactive_service in active_services:
 				active_services.remove(inactive_service)
 
+		# Evaluate the number of free days to be removed for each service
 		if (self.service_a.days + self.service_b.days + self.service_c.days) < int(self.free_days):
 			self._price = 0
 			return self._price
@@ -76,10 +78,13 @@ class Customer():
 		if self.free_days != 0:
 			self._calculate_free_days(active_services)
 
-
+		# Evaluate the number of days with a discount applied for each service
 		self._price = 10000
 		return self._price
 
+		# Calculate the price for each service
+
+		# Calculate the final price
 
 class Service():
 	def __init__(self, price, start_date, end_date, discount, discount_start, discount_end, workday: bool):
