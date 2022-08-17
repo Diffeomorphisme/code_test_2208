@@ -109,8 +109,7 @@ class Customer():
 	def _calculate_price(self, active_services):
 		price = 0
 		for service in active_services:
-			price += (service.discounted_days * (1 - service.discount / 100)
-					  + (service.active_days - service.discounted_days)) * service.price
+			price += (service.active_days - service.discounted_days * service.discount / 100) * service.price
 		return price
 
 	def calculate_price(self) -> float:
@@ -165,8 +164,8 @@ class Service():
 
 def main():
 	received_customerid = "Customer X"
-	received_start_date = "2018-09-20"
-	received_end_date = "2018-10-01"
+	received_start_date = "2019-09-20"
+	received_end_date = "2019-10-01"
 	# Check that end date is later than start date
 
 	# Fetch data from the DB

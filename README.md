@@ -1,49 +1,50 @@
-
-
-**Backend - Evaluation Assignment - Pricing calculator**
+**Code test - Pricing calculator**
 ============
 
 **Background**
 --------
 
-Company X provides services to other companies in the region. Your job is to develop a Web API within a micro-services solution that is solely responsible for calculating prices and should only be called by other services, not humans. There are three types of services; _Service A_, _Service B_ and _Service C_. These services have different prices and the prices also depend on the customer, the time period for which they are charged, possible discount (percentage of total price) and free days. A customer can choose which service they want to use independently of other services and customers.
+Look at Instructions files for the initial instructions, background, user story, etc.
 
-**User story**
+**What'd I do?**
 --------
 
-As a calling service it should be possible to call an endpoint with customerId, start and end in PricingService to know what to charge for a specific customer
+This program does the following:
+- Check the input from the API call (entries all present, dates making sense, etc)
+- Reach out to the database (here represented by a .csv file) and fetch the data. 
+- Make sure the data request exists in the database
+- Instantiate a customer class with attributes from the data fetched from the database
+- Instantiate service classes with attributes from the data fetched from the database for each service
+- Calculate the total price. This is done in the following steps:
+  - Evaluate which services are active in the period
+  - Evaluate the total number of days for each service (including outside the period)
+  - Evaluate the number of free days for each service (including outside the period)
+  - This gives the number of non-free days (including discounted days) for the period for each service
+  - From this, evaluate the number of non-free days for the period for each service
+  - Evaluate the number of discounted days during the period for each service
+  - Subtract (the discounted days * the discount) to the non-free days and multiply the result with the price for each service
+  - Add the price for all services => $$$ here is the total price $$$
 
-**Requirements**
+
+**My questions**
 --------
+Some things are a bit uncertain at this point and I had to make assumptions:
+- _Global_ 
+    - I have considered that the free days had to be distributed among all services from a stock of days
+    - (60 days to 3 services become 20, 20, 20) 
+    - "global"  could mean that the days are calendar days, and not service days 
+    - (this would have made my life much easier)
+  
 
-Build this Web API (PricingService) with appropriate endpoints and implement the following requirements:
+- _Start and end of service_
+    - As of now, services do not seem to have an end date.
+    - I kept it that way, one could consider that a customer could stop using a service while still using another
+    - That would lead to a few changes :)
 
-- Base costs are as follows:
-    - _Service A_ = € 0,2 / working day (monday-friday)
-    - _Service B_ = € 0,24 / working day (monday-friday)
-    - _Service C_ = € 0,4 / day (monday-sunday)
 
-- Each customer can have specific prices for each service (e.g. _Customer A_ only pays € 0,15 per working day for _Service A_ but pays € 0,25 per working day for _Service B_).
 
-- Customers can have discounts for each service
-- Each customer can have a start date for each service
-- Each customer can have a number of free days which are global for all services
-
-# Testing
-
-Use appropriate methodology to test the following scenarios:
-
-**Test case 1**
---------
-
-_Customer X_ started using _Service A_ and _Service C_ 2019-09-20. _Customer X_ also had an discount of 20% between 2019-09-22 and 2019-09-24 for _Service C_. What is the total price for _Customer X_ up until 2019-10-01?
-
-**Test case 2**
---------
-
-_Customer Y_ started using _Service B_ and _Service C_ 2018-01-01. _Customer Y_ had 200 free days and a discount of 30% for the rest of the time. What is the total price for _Customer Y_ up until 2019-10-01?
 
 **Technologies**
 --------
 
-.NET (.NET Core 3.1/.NET 5), Python 3
+Python 3
