@@ -4,7 +4,7 @@
 **Background**
 --------
 
-Look at Instructions files for the initial instructions, background, user story, etc.
+Look at _Instructions.md_ file for the initial instructions, background, user story, etc.
 
 **What'd I do?**
 --------
