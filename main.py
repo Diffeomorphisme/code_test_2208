@@ -1,5 +1,7 @@
 import datetime
 
+import communication
+import database
 import functions
 
 
@@ -28,119 +30,43 @@ class Customer():
 								 self.discount_B_percent, self.discount_B_start, self.discount_B_end, True)
 		self.service_c = Service(self.price_C, self.start_C, self.end_date,
 								 self.discount_C_percent, self.discount_C_start, self.discount_C_end, False)
+		self.active_services = [self.service_a, self.service_b, self.service_c]
 
-	def _determine_active_services(self):
-		active_services = [self.service_a, self.service_b, self.service_c]
-		to_remove = []
+	def calculate_price(self):
+		# Find out which services the customer is paying for (ie active)
+		self.active_services = functions.determine_active_services(self.active_services)
 
-		for service in active_services:
-			if service.start_date is None:
-				to_remove.append(service)
-
-		for inactive_service in to_remove:
-			if inactive_service in active_services:
-				active_services.remove(inactive_service)
-
-		return active_services
-
-	def _calculate_free_days_end(self, services):
-
-		free_days_old = []
-		earliest_date = self.start_date
-		for service in services:
-			free_days_old.append(0)
-			earliest_date = min(earliest_date, service.start_date)
-		test_date = datetime.datetime.strptime(earliest_date, "%Y-%m-%d")
-		number_of_days = functions.calculate_days_difference(test_date.strftime('%Y-%m-%d'),
-															 self.end_date, businessdays=False)
-
-		for i in range(number_of_days):
-			sum = 0
-			print(f"test_date: {test_date}")
-			for service in services:
-				if datetime.datetime.strptime(service.start_date, "%Y-%m-%d") <= test_date:
-					service.total_free_days = functions.calculate_days_difference(service.start_date,
-																				  test_date.strftime('%Y-%m-%d'),
-																				  businessdays=service.workday)
-					sum += service.total_free_days
-			print(f"sum: {sum}")
-			increased_days = []
-			for index, service in enumerate(services):
-				if service.total_free_days > free_days_old[index]:
-					increased_days.append(service)
-
-			if sum < self.free_days:
-				print("Blih")
-				for increased_day in increased_days:
-					increased_day.end_free_days_date = (test_date + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
-
-			elif sum == self.free_days:
-				print("Blah")
-				break
-			else:
-				print("Blouh")
-				overshoot = sum - self.free_days
-				print(f"overshoot: {overshoot}")
-				for i in range(overshoot):
-					print(i)
-					increased_days[i].total_free_days -= 1
-					increased_days[i].end_free_days_date = (test_date - datetime.timedelta(days=1)).strftime('%Y-%m-%d')
-				break
-
-			for index, service in enumerate(services):
-				free_days_old[index] = service.total_free_days
-			test_date += datetime.timedelta(days=1)
-
-	def _calculate_discount_days(self, services):
-		for service in services:
-			if service.discount > 0:
-				max_date = max(max(service.discount_start, self.start_date),
-							   max(service.discount_start, service.end_free_days_date))
-				if service.discount_end is None:
-					service.discounted_days = functions.calculate_days_difference(max_date,
-																				  min(service.end_date, self.end_date)
-																				  , service.workday)
-				else:
-					service.discounted_days = functions.calculate_days_difference(max_date,
-																				  service.discount_end, service.workday)
-				if service.discounted_days < 0:
-					service.discounted_days = 0
-
-	@staticmethod
-	def _calculate_price(active_services):
-		price = 0
-		for service in active_services:
-			price += (service.paid_days - service.discounted_days * service.discount / 100) * service.price
-		return price
-
-	def calculate_price(self) -> float:
-		# Find out which services the customer is paying for
-		# and calculate the total number of days for each service
-		active_services = self._determine_active_services()
-		for service in active_services:
+		# Calculate the total number of days for each active service
+		for service in self.active_services:
 			service.total_days = functions.calculate_days_difference(service.start_date, service.end_date,
 																	 businessdays=service.workday)
 
-		# if the collective number of days is lower than the number of free days => price is 0
-		if (self.service_a.total_days + self.service_b.total_days + self.service_c.total_days) < int(self.free_days):
+		# if the number of all active services days is lower than the number of free days => price is 0
+		# End of estimation, no need to go further
+		sum = 0
+		for service in self.active_services:
+			sum += service.total_days
+		if (sum) <= int(self.free_days):
 			self._price = 0
-			return self._price
+			return
 
 		# Evaluate the end date of free days for each service
 		if self.free_days != 0:
-			self._calculate_free_days_end(active_services)
+			functions.calculate_free_days_end(self.active_services, self.start_date, self.end_date, self.free_days)
 
 		# Calculate the number of paid days (without the free days) for each service
-		for service in active_services:
+		# Evaluate the number of days with a discount applied for each service
+		for service in self.active_services:
 			service.active_date = service.end_free_days_date
 			service.paid_days = functions.calculate_days_difference(service.active_date, service.end_date,
 																	businessdays=service.workday)
+			service.discounted_days = functions.calculate_discount_days(service, self.start_date, self.end_date)
 
-		# Evaluate the number of days with a discount applied for each service
-		self._calculate_discount_days(active_services)
+		# Calculate the total price and round it to 2 digits
+		self._price = round(functions.calculate_total_price(self.active_services), 2)
 
-		# Calculate the total price
-		self._price = round(self._calculate_price(active_services), 2)
+	@property
+	def price(self):
 		return self._price
 
 
@@ -162,26 +88,56 @@ class Service():
 
 
 def main():
-	received_customerid = "Customer X"
-	received_start_date = "2019-09-20"
-	received_end_date = "2019-10-01"
+	fields = ["customerid", "start_date", "end_date"]
+	# Receive the data from the API call
+	incoming_data = communication.receive_data()
+
+	# Do initial data check: right number of fields, fields with the right names
+	initial_data_check = functions.check_initial_data_validity(incoming_data, fields)
+	if initial_data_check:
+		communication.send_data(initial_data_check)
+		return
+
+	received_customerid = incoming_data["customerid"]
+	received_start_date = incoming_data["start_date"]
+	received_end_date = incoming_data["end_date"]
+
+	full_data_check = functions.check_full_data_validity()
+	# Check that end date and start date are dates:
+	try:
+		datetime.datetime.strptime(received_start_date, "%Y-%m-%d")
+	except ValueError:
+		communication.send_data(f"Error: start date {received_start_date} is not a date")
+		return
+	try:
+		datetime.datetime.strptime(received_end_date, "%Y-%m-%d")
+	except ValueError:
+		communication.send_data(f"Error: end date {received_end_date} is not a date")
+		return
+
+
 	# Check that end date is later than start date
+	if functions.calculate_days_difference(received_start_date, received_end_date, True) < 0:
+		communication.send_data(f"Error: start date {received_start_date} is later than end date {received_end_date}")
+		return
 
 	# Fetch data from the DB
 	customer_data = {}
-	customer_data = functions.fetch_customer_data(received_customerid)
+	customer_data = database.fetch_customer_data(received_customerid)
 
 	# Check that the data retrieved from the DB corresponds to the request
-	if received_customerid != customer_data["customerid"]:
-		print("Problem in fetching the customer data")
+	if (received_customerid != customer_data["customerid"] or customer_data["customerid"] is None):
+		communication.send_data(f"Error: customer ID: '{received_customerid}' is invalid")
+		return
 
 	# Instantiate a new customer based on the data fetched from the DB
 	customer = Customer(customer_data_from_db=customer_data,
 						start_date=received_start_date,
 						end_date=received_end_date)
 
-	price = customer.calculate_price()
-	print(price)
+	customer.calculate_price()
+	print(customer.price)
+
 
 if __name__ == "__main__":
 	main()

@@ -1,41 +1,20 @@
-import csv
 import datetime
 import numpy
 
 
-def fetch_customer_data(customer):
-	# Fetches the data from a specific customer based on the customerid
-	# If there are no customerid matching
-	results = {}
-	data_fields = []
-	customer_data = []
-	with open('Database.csv', mode='r') as file:
-		csv_file = csv.reader(file)
-		counter = 0
+def determine_active_services(services: list):
+	to_remove = []
+	actives_services = services
 
-		for line in csv_file:
-			if counter == 0:
-				data_fields = line
-				counter += 1
-			if line[0] == customer:
-				for element in line:
-					if element.isdigit():
-						customer_data.append(int(element))
-					elif element.replace('.', '', 1).isdigit() and element.count('.') < 2:
-						customer_data.append(float(element))
-					elif element == "None":
-						customer_data.append(None)
-					else:
-						customer_data.append(element)
+	for service in actives_services:
+		if service.start_date is None:
+			to_remove.append(service)
 
-	if len(customer_data) == len(data_fields):
-		for index, field in enumerate(data_fields):
-			results[field] = customer_data[index]
-	else:
-		for index, field in enumerate(data_fields):
-			results[field] = None
-	print(results)
-	return results
+	for inactive_service in to_remove:
+		if inactive_service in actives_services:
+			actives_services.remove(inactive_service)
+
+	return actives_services
 
 
 def calculate_days_difference(start_date: str, end_date: str, businessdays=False) -> int:
@@ -49,40 +28,83 @@ def calculate_days_difference(start_date: str, end_date: str, businessdays=False
 	return difference
 
 
-def calculate_free_days(services, start_date: str, end_date: str, free_days: int):
-
-	number_of_days = calculate_days_difference(start_date, end_date, businessdays=False)
+def calculate_free_days_end(services, start_date: str, end_date: str, free_days: int):
 	free_days_old = []
+	earliest_date = start_date
 	for service in services:
 		free_days_old.append(0)
-	test_date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
+		earliest_date = min(earliest_date, service.start_date)
+	test_date = datetime.datetime.strptime(earliest_date, "%Y-%m-%d")
+	number_of_days = calculate_days_difference(test_date.strftime('%Y-%m-%d'),
+											   end_date, businessdays=False)
 
 	for i in range(number_of_days):
 		sum = 0
 		for service in services:
-			if datetime.datetime.strptime(service.start_date, "%Y-%m-%d") < test_date:
-				service.total_free_days = calculate_days_difference(max(start_date, service.start_date),
+			if datetime.datetime.strptime(service.start_date, "%Y-%m-%d") <= test_date:
+				service.total_free_days = calculate_days_difference(service.start_date,
 																	test_date.strftime('%Y-%m-%d'),
 																	businessdays=service.workday)
 				sum += service.total_free_days
+		increased_days = []
+		for index, service in enumerate(services):
+			if service.total_free_days > free_days_old[index]:
+				increased_days.append(service)
 
 		if sum < free_days:
-			pass
+			for increased_day in increased_days:
+				increased_day.end_free_days_date = (test_date + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
+
 		elif sum == free_days:
 			break
 		else:
 			overshoot = sum - free_days
-			increased_days = []
-			for index, service in enumerate(services):
-				if service.total_free_days > free_days_old[index]:
-					increased_days.append(service)
-
 			for i in range(overshoot):
 				print(i)
-				increased_days[-1 - i].total_free_days -= 1
+				increased_days[i].total_free_days -= 1
+				increased_days[i].end_free_days_date = (test_date - datetime.timedelta(days=1)).strftime('%Y-%m-%d')
 			break
 
 		for index, service in enumerate(services):
 			free_days_old[index] = service.total_free_days
 		test_date += datetime.timedelta(days=1)
-		print(test_date)
+
+
+def calculate_discount_days(service, start_date, end_date):
+	discounted_days = 0
+	if service.discount > 0:
+		max_date = max(max(service.discount_start, start_date),
+					   max(service.discount_start, service.end_free_days_date))
+		if service.discount_end is None:
+			discounted_days = calculate_days_difference(max_date,
+														min(service.end_date, end_date),
+														service.workday)
+		else:
+			discounted_days = calculate_days_difference(max_date,
+														service.discount_end, service.workday)
+		if discounted_days < 0:
+			discounted_days = 0
+	return discounted_days
+
+
+def calculate_total_price(services):
+	price = 0
+	for service in services:
+		price += (service.paid_days - service.discounted_days * service.discount / 100) * service.price
+	return price
+
+
+def check_initial_data_validity(data, fields):
+	if len(data) < len(fields):
+		return f"Error: Not enough fields. Expected number of fields is {len(fields)}"
+
+	elif len(data) > len(fields):
+		return f"Error: Too many fields. Expected number of fields is {len(fields)}"
+
+	for key in data.keys():
+		if key not in fields:
+			return f"Error: Invalid field {key}. Expected fields are {fields}"
+
+
+def check_full_data_validity():
+	pass
