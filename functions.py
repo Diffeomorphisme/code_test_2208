@@ -60,7 +60,6 @@ def calculate_free_days_end(services, start_date: str, end_date: str, free_days:
 		else:
 			overshoot = sum - free_days
 			for i in range(overshoot):
-				print(i)
 				increased_days[i].total_free_days -= 1
 				increased_days[i].end_free_days_date = (test_date - datetime.timedelta(days=1)).strftime('%Y-%m-%d')
 			break
@@ -106,5 +105,21 @@ def check_initial_data_validity(data, fields):
 			return f"Error: Invalid field {key}. Expected fields are {fields}"
 
 
-def check_full_data_validity():
-	pass
+def check_full_data_validity(customerid: str, start_date: str, end_date: str, customer_data: dict):
+	# Check that end date and start date are dates:
+	try:
+		datetime.datetime.strptime(start_date, "%Y-%m-%d")
+	except ValueError:
+		return f"Error: start date {start_date} is not a date"
+	try:
+		datetime.datetime.strptime(end_date, "%Y-%m-%d")
+	except ValueError:
+		return f"Error: end date {end_date} is not a date"
+
+	# Check that end date is later than start date
+	if calculate_days_difference(start_date, end_date, True) < 0:
+		return f"Error: start date {start_date} is later than end date {end_date}"
+
+	# Check that the data retrieved from the DB corresponds to the request
+	if customerid != customer_data["customerid"] or customer_data["customerid"] is None:
+		return f"Error: customer ID: '{customerid}' is invalid"

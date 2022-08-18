@@ -102,32 +102,17 @@ def main():
 	received_start_date = incoming_data["start_date"]
 	received_end_date = incoming_data["end_date"]
 
-	full_data_check = functions.check_full_data_validity()
-	# Check that end date and start date are dates:
-	try:
-		datetime.datetime.strptime(received_start_date, "%Y-%m-%d")
-	except ValueError:
-		communication.send_data(f"Error: start date {received_start_date} is not a date")
-		return
-	try:
-		datetime.datetime.strptime(received_end_date, "%Y-%m-%d")
-	except ValueError:
-		communication.send_data(f"Error: end date {received_end_date} is not a date")
-		return
-
-
-	# Check that end date is later than start date
-	if functions.calculate_days_difference(received_start_date, received_end_date, True) < 0:
-		communication.send_data(f"Error: start date {received_start_date} is later than end date {received_end_date}")
-		return
-
 	# Fetch data from the DB
 	customer_data = {}
 	customer_data = database.fetch_customer_data(received_customerid)
 
-	# Check that the data retrieved from the DB corresponds to the request
-	if (received_customerid != customer_data["customerid"] or customer_data["customerid"] is None):
-		communication.send_data(f"Error: customer ID: '{received_customerid}' is invalid")
+	# Do full data check (customerid is in database, dates in the right format, start date < end date)
+	full_data_check = functions.check_full_data_validity(received_customerid,
+														 received_start_date,
+														 received_end_date,
+														 customer_data)
+	if full_data_check:
+		communication.send_data(full_data_check)
 		return
 
 	# Instantiate a new customer based on the data fetched from the DB
@@ -136,8 +121,11 @@ def main():
 						end_date=received_end_date)
 
 	customer.calculate_price()
-	print(customer.price)
 
+	# Send the data back
+	final_price = customer.price
+	response = "{"+"price: "+str(final_price)+"}"
+	communication.send_data(response)
 
 if __name__ == "__main__":
 	main()
