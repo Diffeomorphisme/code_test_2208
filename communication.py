@@ -18,4 +18,5 @@ def receive_data():
 
 
 def send_data(data):
-	print(f"{data}")
+	response = "{"+"price: "+str(data)+"}"
+	print(response)

@@ -89,6 +89,7 @@ class Service():
 
 def main():
 	fields = ["customerid", "start_date", "end_date"]
+
 	# Receive the data from the API call
 	incoming_data = communication.receive_data()
 
@@ -120,12 +121,12 @@ def main():
 						start_date=received_start_date,
 						end_date=received_end_date)
 
+	# Calculate the price
 	customer.calculate_price()
+	final_price = customer.price
 
 	# Send the data back
-	final_price = customer.price
-	response = "{"+"price: "+str(final_price)+"}"
-	communication.send_data(response)
+	communication.send_data(final_price)
 
 if __name__ == "__main__":
 	main()
