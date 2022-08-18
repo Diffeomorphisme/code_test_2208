@@ -26,6 +26,19 @@ This program does the following:
   - Add the price for all services => $$$ here is the total price $$$
 
 
+**API**
+--------
+
+- uri: /get-price
+- data fields
+    - customerid
+    - start_date: YYY-MM-DD
+    - end_date: YYY-MM-DD
+- response
+    - error -> Error: Text of the error
+    - no error -> price: value of the price
+
+
 **My questions**
 --------
 Some things are a bit uncertain at this point, and I had to make assumptions:
