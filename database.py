@@ -3,7 +3,7 @@ import csv
 
 def fetch_customer_data(customer):
 	# Fetches the data from a specific customer based on the customerid
-	# If there are no customerid matching
+	# If there are no customerid matching -> return a dictionary with the keys but no values (None)
 	results = {}
 	data_fields = []
 	customer_data = []
@@ -16,6 +16,7 @@ def fetch_customer_data(customer):
 				data_fields = line
 				counter += 1
 			if line[0] == customer:
+				# convert text to int, float or None
 				for element in line:
 					if element.isdigit():
 						customer_data.append(int(element))

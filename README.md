@@ -71,6 +71,12 @@ Some things are a bit uncertain at this point, and I had to make assumptions:
           and a minimal amount of code would be changed 
 
 
+**What did I not do?**
+--------
+- _Code testing methodologies_
+  - I am currently learning about this, and I believe it would be messy to implement at this stage
+  - I have tested the code though, and I get the results I expect from manual calculations :)
+- Most likely many other things I am not aware of... gotta learn! :D
 
 **Technologies**
 --------
