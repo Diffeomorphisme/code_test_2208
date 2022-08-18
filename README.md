@@ -32,8 +32,9 @@ This program does the following:
 - uri: /get-price
 - data fields
     - customerid
-    - start_date: YYY-MM-DD
-    - end_date: YYY-MM-DD
+    - start_date: YYYY-MM-DD
+    - end_date: YYYY-MM-DD
+    - No private key in place, but one might be needed
 - response
     - error -> Error: Text of the error
     - no error -> price: value of the price
@@ -52,8 +53,12 @@ Some things are a bit uncertain at this point, and I had to make assumptions:
 
 - _Start and end of service_
     - As of now, services do not seem to have an end date.
-    - I kept it that way, but one can consider that a customer could stop using a service while still using another
-    - That would lead to a few changes :) I would have tried to clarify this before continuing further
+        - I kept it that way, but one can consider that a customer could stop using a service while still using another
+        - That would lead to a few changes :) I would have tried to clarify this before continuing further
+    - All dates used in the test are excluding end dates when calculating durations.
+        - This is true for the duration of the services (last day excluded)
+        - This is also true for the discounts
+        - This can be changed, though :)
 
   
 - _Storage of data_
