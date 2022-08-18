@@ -88,7 +88,7 @@ class Service():
 app = Flask("API")
 
 
-@app.route('/my-first-api', methods=['GET'])
+@app.route('/get-price', methods=['GET'])
 def main():
 	expected_fields = ["customerid", "start_date", "end_date"]
 	response = {}
