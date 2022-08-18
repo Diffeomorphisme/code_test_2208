@@ -93,33 +93,21 @@ def calculate_total_price(services):
 	return price
 
 
-def check_initial_data_validity(data, fields):
-	if len(data) < len(fields):
-		return f"Error: Not enough fields. Expected number of fields is {len(fields)}"
-
-	elif len(data) > len(fields):
-		return f"Error: Too many fields. Expected number of fields is {len(fields)}"
-
-	for key in data.keys():
-		if key not in fields:
-			return f"Error: Invalid field {key}. Expected fields are {fields}"
-
-
 def check_full_data_validity(customerid: str, start_date: str, end_date: str, customer_data: dict):
 	# Check that end date and start date are dates:
 	try:
 		datetime.datetime.strptime(start_date, "%Y-%m-%d")
 	except ValueError:
-		return f"Error: start date {start_date} is not a date"
+		return f"Start date not a valid date: {start_date}"
 	try:
 		datetime.datetime.strptime(end_date, "%Y-%m-%d")
 	except ValueError:
-		return f"Error: end date {end_date} is not a date"
+		return f"End date not a valid date: {end_date}"
 
 	# Check that end date is later than start date
 	if calculate_days_difference(start_date, end_date, True) < 0:
-		return f"Error: start date {start_date} is later than end date {end_date}"
+		return f"Start date '{start_date}' is later than end date '{end_date}'"
 
 	# Check that the data retrieved from the DB corresponds to the request
 	if customerid != customer_data["customerid"] or customer_data["customerid"] is None:
-		return f"Error: customer ID: '{customerid}' is invalid"
+		return f"Invalid customer ID: '{customerid}'"

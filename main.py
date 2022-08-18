@@ -1,6 +1,4 @@
-import datetime
-
-import communication
+from flask import Flask, jsonify, request
 import database
 import functions
 
@@ -87,24 +85,38 @@ class Service():
 		self.end_free_days_date = start_date
 
 
+app = Flask("API")
+
+
+@app.route('/my-first-api', methods=['GET'])
 def main():
-	fields = ["customerid", "start_date", "end_date"]
+	expected_fields = ["customerid", "start_date", "end_date"]
+	response = {}
 
-	# Receive the data from the API call
-	incoming_data = communication.receive_data()
+	# Check that all fields are present and entered correctly
+	# If not, answer with an error and mention which fields are incorrect/missing
+	received_customerid = request.args.get(expected_fields[0])
+	if received_customerid is None:
+		response["Error"] = f"Invalid field, expected: '{expected_fields[0]}'"
 
-	# Do initial data check: right number of fields, fields with the right names
-	initial_data_check = functions.check_initial_data_validity(incoming_data, fields)
-	if initial_data_check:
-		communication.send_data(initial_data_check)
-		return
+	received_start_date = request.args.get(expected_fields[1])
+	if received_start_date is None:
+		if "Error" in response.keys():
+			response["Error"] += f", '{expected_fields[1]}'"
+		else:
+			response["Error"] = f"Invalid field, expected: '{expected_fields[1]}'"
 
-	received_customerid = incoming_data["customerid"]
-	received_start_date = incoming_data["start_date"]
-	received_end_date = incoming_data["end_date"]
+	received_end_date = request.args.get(expected_fields[2])
+	if received_end_date is None:
+		if "Error" in response.keys():
+			response["Error"] += f", '{expected_fields[2]}'"
+		else:
+			response["Error"] = f"Invalid field, expected: '{expected_fields[2]}'"
+
+	if "Error" in response.keys():
+		return jsonify(response)
 
 	# Fetch data from the DB
-	customer_data = {}
 	customer_data = database.fetch_customer_data(received_customerid)
 
 	# Do full data check (customerid is in database, dates in the right format, start date < end date)
@@ -113,8 +125,8 @@ def main():
 														 received_end_date,
 														 customer_data)
 	if full_data_check:
-		communication.send_data(full_data_check)
-		return
+		response["Error"] = full_data_check
+		return jsonify(response)
 
 	# Instantiate a new customer based on the data fetched from the DB
 	customer = Customer(customer_data_from_db=customer_data,
@@ -125,8 +137,11 @@ def main():
 	customer.calculate_price()
 	final_price = customer.price
 
-	# Send the data back
-	communication.send_data(final_price)
+	# Send the calculated price back to the caller
+	response["price"] = final_price
+	return jsonify(response)
 
-if __name__ == "__main__":
-	main()
+if __name__ == '__main__':
+	app.run(debug=True, port=8000)
+
+
