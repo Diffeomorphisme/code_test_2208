@@ -46,6 +46,7 @@ def calculate_free_days_end(services, start_date: str, end_date: str, free_days:
 																	test_date.strftime('%Y-%m-%d'),
 																	businessdays=service.workday)
 				sum += service.total_free_days
+
 		increased_days = []
 		for index, service in enumerate(services):
 			if service.total_free_days > free_days_old[index]:
@@ -83,31 +84,6 @@ def calculate_discount_days(service, start_date, end_date):
 														service.discount_end, service.workday)
 		if discounted_days < 0:
 			discounted_days = 0
+
 	return discounted_days
 
-
-def calculate_total_price(services):
-	price = 0
-	for service in services:
-		price += (service.paid_days - service.discounted_days * service.discount / 100) * service.price
-	return price
-
-
-def check_full_data_validity(customerid: str, start_date: str, end_date: str, customer_data: dict):
-	# Check that end date and start date are dates:
-	try:
-		datetime.datetime.strptime(start_date, "%Y-%m-%d")
-	except ValueError:
-		return f"Start date not a valid date: {start_date}"
-	try:
-		datetime.datetime.strptime(end_date, "%Y-%m-%d")
-	except ValueError:
-		return f"End date not a valid date: {end_date}"
-
-	# Check that end date is later than start date
-	if calculate_days_difference(start_date, end_date, True) < 0:
-		return f"Start date '{start_date}' is later than end date '{end_date}'"
-
-	# Check that the data retrieved from the DB corresponds to the request
-	if customerid != customer_data["customerid"] or customer_data["customerid"] is None:
-		return f"Invalid customer ID: '{customerid}'"

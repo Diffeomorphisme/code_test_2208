@@ -1,4 +1,6 @@
 import csv
+import datetime
+from customer import functions
 
 
 def fetch_customer_data(customer):
@@ -7,7 +9,7 @@ def fetch_customer_data(customer):
 	results = {}
 	data_fields = []
 	customer_data = []
-	with open('Database.csv', mode='r') as file:
+	with open('database/Database.csv', mode='r') as file:
 		csv_file = csv.reader(file)
 		counter = 0
 
@@ -34,3 +36,22 @@ def fetch_customer_data(customer):
 		for index, field in enumerate(data_fields):
 			results[field] = None
 	return results
+
+def check_full_data_validity(customerid: str, start_date: str, end_date: str, customer_data: dict):
+	# Check that end date and start date are dates:
+	try:
+		datetime.datetime.strptime(start_date, "%Y-%m-%d")
+	except ValueError:
+		return f"Start date not a valid date: {start_date}"
+	try:
+		datetime.datetime.strptime(end_date, "%Y-%m-%d")
+	except ValueError:
+		return f"End date not a valid date: {end_date}"
+
+	# Check that end date is later than start date
+	if functions.calculate_days_difference(start_date, end_date, True) < 0:
+		return f"Start date '{start_date}' is later than end date '{end_date}'"
+
+	# Check that the data retrieved from the DB corresponds to the request
+	if customerid != customer_data["customerid"] or customer_data["customerid"] is None:
+		return f"Invalid customer ID: '{customerid}'"

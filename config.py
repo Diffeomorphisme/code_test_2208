@@ -1,0 +1,1 @@
+expected_fields = ["customerid", "start_date", "end_date"]
