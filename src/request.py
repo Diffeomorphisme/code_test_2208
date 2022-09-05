@@ -1,4 +1,5 @@
 def check_request_fields(expected_fields, request):
+	"""Perform a check that incoming data has the espected fields"""
 	response = {}
 
 	# Check request is correct

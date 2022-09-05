@@ -3,15 +3,13 @@ import database.database as database
 import config
 from customer.customer import Customer
 from request import check_request_fields
-
-
 app = Flask("API")
 
 
 @app.route('/get-price', methods=['GET'])
 def main():
 	# Check all fields are good
-	expected_fields = config.expected_field
+	expected_fields = config.expected_fields
 	response = check_request_fields(expected_fields, request)
 
 	if "Error" in response.keys():
@@ -26,9 +24,9 @@ def main():
 
 	# Do full data check (customerid is in database, dates in the right format, start date < end date)
 	full_data_check = database.check_full_data_validity(received_customer_id,
-														 received_start_date,
-														 received_end_date,
-														 customer_data)
+														received_start_date,
+														received_end_date,
+														customer_data)
 	if full_data_check:
 		response["Error"] = full_data_check
 		return jsonify(response)

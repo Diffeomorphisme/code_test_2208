@@ -1,6 +1,6 @@
 import csv
 import datetime
-from customer import functions
+from src.customer import functions
 
 
 def fetch_customer_data(customer):

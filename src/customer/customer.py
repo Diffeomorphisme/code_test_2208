@@ -1,4 +1,4 @@
-import customer.functions as functions
+import src.customer.functions as functions
 
 
 class Customer():
