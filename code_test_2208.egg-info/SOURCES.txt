@@ -1,0 +1,17 @@
+README.md
+setup.py
+code_test_2208.egg-info/PKG-INFO
+code_test_2208.egg-info/SOURCES.txt
+code_test_2208.egg-info/dependency_links.txt
+code_test_2208.egg-info/top_level.txt
+src/__init__.py
+src/config.py
+src/main.py
+src/request.py
+src/customer/__init__.py
+src/customer/customer.py
+src/customer/functions.py
+src/database/__init__.py
+src/database/database.py
+test/test_database.py
+test/test_request.py
