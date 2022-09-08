@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
-import database.database as database
+import src.database.database as database
 import config
-from customer.customer import Customer
+from src.customer.customer import Customer
 from request import check_request_fields
 app = Flask("API")
 

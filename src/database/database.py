@@ -9,7 +9,7 @@ def fetch_customer_data(customer):
 	results = {}
 	data_fields = []
 	customer_data = []
-	with open('database/Database.csv', mode='r') as file:
+	with open('src/database/Database.csv', mode='r') as file:
 		csv_file = csv.reader(file)
 		counter = 0
 
