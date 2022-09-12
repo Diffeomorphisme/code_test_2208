@@ -4,10 +4,10 @@ from src.database import database
 
 class TestDatabase(unittest.TestCase):
 	def setUp(self):
-		self.customer_id = "Customer X"
+		self.customer_id = "Customer_X"
 		self.start_date = "2019-09-20"
 		self.end_date = "2019-10-01"
-		self.customer_data = {"customerid": "Customer X", "price_A": 0.2, "price_B": 0.24, "price_C": 0.4,
+		self.customer_data = {"customerid": "Customer_X", "price_A": 0.2, "price_B": 0.24, "price_C": 0.4,
 							   "discount_A_percent": 0, "discount_B_percent": 0, "discount_C_percent": 20,
 							   "discount_A_start": None, "discount_B_start": None, "discount_C_start": "2019-09-22",
 							   "discount_A_end": None, "discount_B_end": None, "discount_C_end": "2019-09-24",

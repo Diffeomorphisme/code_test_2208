@@ -1,3 +1,3 @@
 customerid,price_A,price_B,price_C,discount_A_percent,discount_B_percent,discount_C_percent,discount_A_start,discount_B_start,discount_C_start,discount_A_end,discount_B_end,discount_C_end,start_A,start_B,start_C,free_days
-Customer X,0.2,0.24,0.4,0,0,20,None,None,2019-09-22,None,None,2019-09-24,2019-09-20,None,2019-09-20,0
-Customer Y,0.2,0.24,0.4,0,30,30,None,2018-01-01,2018-01-01,None,None,None,None,2018-01-01,2018-01-01,200
+Customer_X,0.2,0.24,0.4,0,0,20,None,None,2019-09-22,None,None,2019-09-24,2019-09-20,None,2019-09-20,0
+Customer_Y,0.2,0.24,0.4,0,30,30,None,2018-01-01,2018-01-01,None,None,None,None,2018-01-01,2018-01-01,200

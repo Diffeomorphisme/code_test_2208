@@ -3,6 +3,8 @@ import src.database.database as database
 import config
 from src.customer.customer import Customer
 from request import check_request_fields
+
+
 app = Flask("API")
 
 
@@ -46,6 +48,6 @@ def main():
 
 
 if __name__ == '__main__':
-	app.run(debug=True, port=8000)
+	app.run(debug=True, host="0.0.0.0")
 
 
